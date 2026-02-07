@@ -75,7 +75,6 @@ void drawHeader() {
 void updateDashboard(char* json) {
     StaticJsonDocument<256> doc;
     DeserializationError error = deserializeJson(doc, json);
-
     if (error) return;
 
     int cpu = doc["cpu"];
@@ -86,30 +85,37 @@ void updateDashboard(char* json) {
     drawModernBar(20, 65, 200, 14, cpu, "PROCESSOR LOAD");
     drawModernBar(20, 125, 200, 14, mem, "MEMORY USAGE");
 
-    tft.setTextSize(2);
-    
-    tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
     tft.setCursor(20, 175);
     tft.setTextSize(1);
+    tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
     tft.print("CORE TEMP");
     
     tft.setCursor(20, 190);
     tft.setTextSize(3);
-    tft.setTextColor(temp > 65 ? TFT_ORANGE : TFT_CYAN, TFT_BLACK);
-    tft.printf("%d", temp);
+    uint16_t tColor = (temp > 70) ? TFT_RED : (temp > 55 ? TFT_ORANGE : TFT_CYAN);
+    tft.setTextColor(tColor, TFT_BLACK); 
+    
+    if (temp < 10) tft.print(" ");
+    tft.print(temp);
     tft.setTextSize(1);
-    tft.print(" oC");
+    tft.print(" oC "); 
 
     tft.setCursor(160, 175);
+    tft.setTextSize(1);
     tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
     tft.print("SYS UPTIME");
+    
     tft.setCursor(160, 190);
     tft.setTextSize(2);
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
-    
-    int days = uptime / 86400;
-    int hours = (uptime % 86400) / 3600;
-    tft.printf("%dd %dh", days, hours);
+
+    int d = uptime / 86400;
+    int h = (uptime % 86400) / 3600;
+    int m = (uptime % 3600) / 60;
+
+    char uptimeStr[16];
+    snprintf(uptimeStr, sizeof(uptimeStr), "%dd %dh %02dm", d, h, m);
+    tft.print(uptimeStr);
 }
 
 void drawModernBar(int x, int y, int w, int h, int percent, String label) {
